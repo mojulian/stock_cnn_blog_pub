@@ -21,7 +21,7 @@ from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 from sklearn.utils import compute_class_weight
 from tqdm.auto import tqdm
 from logger import Logger
-from secrets import api_key
+from my_secrets import Key
 from utils import *
 
 
@@ -33,7 +33,7 @@ class DataGenerator:
         self.data_path = data_path
         self.logger = logger
         self.BASE_URL = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED" \
-                        "&outputsize=full&apikey=" + api_key + "&datatype=csv&symbol="  # api key from alpha vantage service
+                        "&outputsize=full&apikey=" + Key().api_key + "&datatype=csv&symbol="  # api key from alpha vantage service
         self.output_path = output_path
         self.start_col = 'open'
         self.end_col = 'eom_26'
@@ -135,13 +135,12 @@ class DataGenerator:
                     if price > max_:
                         max_ = price
                         max_index = i
-
-                if max_index == window_middle:
-                    labels[window_middle] = 0
-                elif min_index == window_middle:
-                    labels[window_middle] = 1
+                if max_index == int(window_middle):
+                    labels[int(window_middle)] = 0
+                elif min_index == int(window_middle):
+                    labels[int(window_middle)] = 1
                 else:
-                    labels[window_middle] = 2
+                    labels[int(window_middle)] = 2
 
             row_counter = row_counter + 1
             pbar.update(1)
@@ -242,7 +241,7 @@ class DataGenerator:
             df['timestamp'] = pd.to_datetime(df['timestamp'])
             df.sort_values('timestamp', inplace=True)
             df.reset_index(drop=True, inplace=True)
-            intervals = range(6, 27)  # 21
+            intervals = range(6, 27)  # 6, 27 --> 21
             self.calculate_technical_indicators(df, 'close', intervals)
             self.log("Saving dataframe...")
             df.to_csv(os.path.join(self.output_path, "df_" + self.company_code+".csv"), index=False)

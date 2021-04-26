@@ -29,9 +29,32 @@ from tqdm.auto import tqdm
 from stockstats import StockDataFrame as sdf
 from ta import *
 from matplotlib import pyplot as plt
-import winsound
+# import winsound
 import time
 
+## my additions
+import simpleaudio as sa
+def beep_sound(frequency,duration):
+    # frequency = x # Our played note will be 440 Hz
+    fs = 44100  # 44100 samples per second
+    seconds = duration  # Note duration of 3 seconds
+
+    # Generate array with seconds*sample_rate steps, ranging between 0 and seconds
+    t = np.linspace(0, seconds, seconds * fs, False)
+
+    # Generate a 440 Hz sine wave
+    note = np.sin(frequency * t * 2 * np.pi)
+
+    # Ensure that highest value is in 16-bit range
+    audio = note * (2**15 - 1) / np.max(np.abs(note))
+    # Convert to 16-bit data
+    audio = audio.astype(np.int16)
+
+    # Start playback
+    play_obj = sa.play_buffer(audio, 1, 2, fs)
+
+    # Wait for playback to finish before exiting
+    play_obj.wait_done()
 
 def seconds_to_minutes(seconds):
     return str(seconds // 60) + " minutes " + str(np.round(seconds % 60)) + " seconds"
@@ -144,7 +167,8 @@ def sound_alert(repeat_count=5):
     duration = 1000  # millisecond
     freq = 440  # Hz
     for i in range(0, repeat_count):
-        winsound.Beep(freq, duration)
+        # winsound.Beep(freq, duration)
+        beep_sound(freq, duration)
         time.sleep(1)
 
 
@@ -255,7 +279,8 @@ def get_williamR(df, col_name, intervals):
     # df_ss = sdf.retype(df)
     for i in tqdm(intervals):
         # df['wr_'+str(i)] = df_ss['wr_'+str(i)]
-        df["wr_" + str(i)] = wr(df['high'], df['low'], df['close'], i, fillna=True)
+        # df["wr_" + str(i)] = wr(df['high'], df['low'], df['close'], i, fillna=True)
+        df["wr_" + str(i)] = williams_r(df['high'], df['low'], df['close'], i, fillna=True)
 
     print_time("Calculation of WilliamR Done", stime)
 
@@ -268,7 +293,7 @@ def get_mfi(df, intervals):
     stime = time.time()
     print("Calculating MFI")
     for i in tqdm(intervals):
-        df['mfi_' + str(i)] = money_flow_index(df['high'], df['low'], df['close'], df['volume'], n=i, fillna=True)
+        df['mfi_' + str(i)] = money_flow_index(df['high'], df['low'], df['close'], df['volume'], i , fillna=True)
 
     print_time("Calculation of MFI done", stime)
 
@@ -446,7 +471,7 @@ def get_BB_MAV(df, col_name, intervals):
     print("Calculating Bollinger Band MAV")
     df_ss = sdf.retype(df)
     for i in tqdm(intervals):
-        df['bb_' + str(i)] = bollinger_mavg(df['close'], n=i, fillna=True)
+        df['bb_' + str(i)] = bollinger_mavg(df['close'], i, fillna=True)
 
     print_time("Calculation of Bollinger Band MAV done", stime)
 
@@ -581,7 +606,7 @@ def get_DPO(df, col_name, intervals):
     stime = time.time()
     print("Calculating DPO")
     for i in tqdm(intervals):
-        df['dpo_' + str(i)] = dpo(df['close'], n=i)
+        df['dpo_' + str(i)] = dpo(df['close'], i)
 
     print_time("Calculation of DPO done", stime)
 
@@ -629,7 +654,7 @@ def get_EOM(df, col_name, intervals):
     stime = time.time()
     print("Calculating EOM")
     for i in tqdm(intervals):
-        df['eom_' + str(i)] = ease_of_movement(df['high'], df['low'], df['volume'], n=i, fillna=True)
+        df['eom_' + str(i)] = ease_of_movement(df['high'], df['low'], df['volume'], i, fillna=True)
 
     print_time("Calculation of EOM done", stime)
 
