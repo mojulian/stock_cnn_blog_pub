@@ -1,5 +1,6 @@
 # Ignore everything
 # *
+.vscode/
 /outputs
 /train_images
 /.idea
